@@ -1,10 +1,10 @@
 var AWS = require("aws-sdk");
 AWS.config.update({region: 'ap-southeast-2'});
-var moment = require("moment");
+var Moment = require("moment");
 var limit = 3;
 var ec2 = new AWS.EC2();
-var AMI_storage = new Array();
-'use strict'
+var AMI_storage = [];
+'use strict';
 
 class AMI{
 
@@ -13,12 +13,12 @@ class AMI{
   listEC2 () {
     return new Promise((resolve, reject) => {
       let Instance_set = {};
-      let Instances = new Array(); // Instance details
+      let Instances = []; // Instance details
       ec2.describeInstances({}, function(err, response) {
               if (err) {
                   reject(err);
               } else {
-                  let current_time = new moment().format(" YYYYMMDD");
+                  let current_time = new Moment().format(" YYYYMMDD");
                   let ec2_list = response.Reservations.map(instanceResponse =>{
                       instanceResponse.Instances[0].Tags.map(instanceTags => {
                          if(instanceTags.Key == 'Backup' && instanceTags.Value == 'True'){
@@ -29,12 +29,12 @@ class AMI{
                            Instance_set.name_date = Instance_name.Value.concat(current_time);
                            Instances.push(Instance_set);
                          }
-                      })
+                      });
                       resolve(Instances);
-                  })
+                  });
               }
       });
-    })
+    });
   }
 
   listAMIs() {
@@ -46,12 +46,12 @@ class AMI{
             resolve(data.Images);
           }
       });
-    })
+    });
   }
 
 
   countAMIs(data, Instances) {
-    let AMI_burn_set = new Array();
+    let AMI_burn_set = [];
       Instances.map(tagged_instance => {
         let AMI_pair = {};
         let i = 0;
@@ -66,12 +66,12 @@ class AMI{
             AMI_pair.details=tagged_instance;
             AMI_burn_set.push(AMI_pair);
           }
-        })
-      })
+        });
+      });
 
       let uniqueArray = AMI_burn_set.filter(function(element, initial_position) {
          return AMI_burn_set.indexOf(element) == initial_position;
-      })
+      });
       return uniqueArray;
     }
 
@@ -91,10 +91,10 @@ class AMI{
     var params = {
       InstanceId : instance.details.id,
       Name : instance.details.name_date
-    }
+    };
     ec2.createImage(params, function(err, data) {
       if (err) {
-        console.log(err, err.stack)
+        console.log(err, err.stack);
       }  else{
         console.log(data);
         // return true;
@@ -123,11 +123,11 @@ class AMI{
        console.log(private_AMI.Name);
        var params = {
          ImageId : private_AMI.ImageId
-       }
+       };
        ec2.deregisterImage(params, function(err, data) {
          if (err) console.log(err, err.stack); // an error occurred
          else     console.log(data);           // successful response
-       })
+       });
     }
   });
  }
